@@ -1,7 +1,11 @@
 #Pacman in Python with PyGame
-#https://github.com/hbokmann/Pacman
+#Author: https://github.com/hbokmann/Pacman
+#Modified by: Matt Jones
+#Music: HoliznaCC0 - Final Level, licensed under CC0 1.0
+# https://freemusicarchive.org/music/holiznacc0/gamer-beats/final-level/
+#https://creativecommons.org/publicdomain/zero/1.0/
   
-import pygame._view
+import pygame
   
 black = (0,0,0)
 white = (255,255,255)
@@ -11,12 +15,12 @@ red = (255,0,0)
 purple = (255,0,255)
 yellow   = ( 255, 255,   0)
 
-Trollicon=pygame.image.load('images/Trollman.png')
-pygame.display.set_icon(Trollicon)
+Pacicon=pygame.image.load('images/pacman.png')
+pygame.display.set_icon(Pacicon)
 
 #Add music
 pygame.mixer.init()
-pygame.mixer.music.load('pacman.mp3')
+pygame.mixer.music.load('HoliznaCC0 - Final Level.mp3')
 pygame.mixer.music.play(-1, 0.0)
 
 # This class represents the bar at the bottom that the player controls
@@ -398,7 +402,7 @@ def startGame():
 
 
   # Create the player paddle object
-  Pacman = Player( w, p_h, "images/Trollman.png" )
+  Pacman = Player( w, p_h, "images/pacman.png" )
   all_sprites_list.add(Pacman)
   pacman_collide.add(Pacman)
    
@@ -418,6 +422,19 @@ def startGame():
   monsta_list.add(Clyde)
   all_sprites_list.add(Clyde)
 
+# CHANGE - make lists for each type of ghost           
+
+  blinky_instances = [Blinky]
+  pinky_instances = [Pinky]
+  inky_instances = [Inky]
+  clyde_instances = [Clyde]
+
+  ghost_instances = [blinky_instances, pinky_instances, inky_instances, clyde_instances]
+
+  pygame.time.set_timer(pygame.USEREVENT+1, 30000) #timer before game loop starts
+
+# CHANGE END
+                   
   # Draw the grid
   for row in range(19):
       for column in range(19):
@@ -452,6 +469,10 @@ def startGame():
   while done == False:
       # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
       for event in pygame.event.get():
+ # CHANGE - Add timer for doubling the ghosts                                           
+          if event.type == pygame.USEREVENT+1:
+            duplicate_ghost(ghost_instances, monsta_list, all_sprites_list)
+# CHANGE END
           if event.type == pygame.QUIT:
               done=True
 
@@ -480,29 +501,37 @@ def startGame():
       # ALL GAME LOGIC SHOULD GO BELOW THIS COMMENT
       Pacman.update(wall_list,gate)
 
-      returned = Pinky.changespeed(Pinky_directions,False,p_turn,p_steps,pl)
-      p_turn = returned[0]
-      p_steps = returned[1]
-      Pinky.changespeed(Pinky_directions,False,p_turn,p_steps,pl)
-      Pinky.update(wall_list,False)
+# CHANGE - The code needs to run on multiple instances of each ghost
 
-      returned = Blinky.changespeed(Blinky_directions,False,b_turn,b_steps,bl)
-      b_turn = returned[0]
-      b_steps = returned[1]
-      Blinky.changespeed(Blinky_directions,False,b_turn,b_steps,bl)
-      Blinky.update(wall_list,False)
+      for i in range(len(pinky_instances)):
+        returned = pinky_instances[i].changespeed(Pinky_directions,False,p_turn,p_steps,pl)
+        p_turn = returned[0]
+        p_steps = returned[1]
+        pinky_instances[i].changespeed(Pinky_directions,False,p_turn,p_steps,pl)
+        pinky_instances[i].update(wall_list,False)
 
-      returned = Inky.changespeed(Inky_directions,False,i_turn,i_steps,il)
-      i_turn = returned[0]
-      i_steps = returned[1]
-      Inky.changespeed(Inky_directions,False,i_turn,i_steps,il)
-      Inky.update(wall_list,False)
+      for i in range(len(blinky_instances)):
+        returned = blinky_instances[i].changespeed(Blinky_directions,False,p_turn,p_steps,pl)
+        p_turn = returned[0]
+        p_steps = returned[1]
+        blinky_instances[i].changespeed(Blinky_directions,False,p_turn,p_steps,pl)
+        blinky_instances[i].update(wall_list,False)
 
-      returned = Clyde.changespeed(Clyde_directions,"clyde",c_turn,c_steps,cl)
-      c_turn = returned[0]
-      c_steps = returned[1]
-      Clyde.changespeed(Clyde_directions,"clyde",c_turn,c_steps,cl)
-      Clyde.update(wall_list,False)
+      for i in range(len(inky_instances)):
+        returned = inky_instances[i].changespeed(Inky_directions,False,p_turn,p_steps,pl)
+        p_turn = returned[0]
+        p_steps = returned[1]
+        inky_instances[i].changespeed(Inky_directions,False,p_turn,p_steps,pl)
+        inky_instances[i].update(wall_list,False)
+
+      for i in range(len(clyde_instances)):
+        returned = clyde_instances[i].changespeed(Clyde_directions,False,p_turn,p_steps,pl)
+        p_turn = returned[0]
+        p_steps = returned[1]
+        clyde_instances[i].changespeed(Clyde_directions,False,p_turn,p_steps,pl)
+        clyde_instances[i].update(wall_list,False)
+
+# CHANGE END
 
       # See if the Pacman block has collided with anything.
       blocks_hit_list = pygame.sprite.spritecollide(Pacman, block_list, True)
@@ -524,12 +553,28 @@ def startGame():
       text=font.render("Score: "+str(score)+"/"+str(bll), True, red)
       screen.blit(text, [10, 10])
 
+#ADDITION to display amount of ghosts.
+
+      textg=font.render("Ghosts: "+str(len(monsta_list)), True, red)
+      screen.blit(textg, [450, 10])
+#END ADDITION
+
       if score == bll:
         doNext("Congratulations, you won!",145,all_sprites_list,block_list,monsta_list,pacman_collide,wall_list,gate)
 
       monsta_hit_list = pygame.sprite.spritecollide(Pacman, monsta_list, False)
 
       if monsta_hit_list:
+
+#CHANGE
+
+        monsta_list.remove(monsta_hit_list)
+        all_sprites_list.remove(monsta_hit_list)
+
+      if len(monsta_list) >= 128:
+
+#CHANGE END
+
         doNext("Game Over",235,all_sprites_list,block_list,monsta_list,pacman_collide,wall_list,gate)
 
       # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
@@ -574,6 +619,39 @@ def doNext(message,left,all_sprites_list,block_list,monsta_list,pacman_collide,w
       pygame.display.flip()
 
       clock.tick(10)
+
+# CHANGE - Add code to duplicate the ghosts
+
+def duplicate_ghost(gi, monsta_list, asl):
+  if len(gi[0]) < 32:
+    for k in range(len(gi[0])):
+      b = Ghost(w, b_h, "images/Blinky.png")
+      gi[0].append(b)
+      monsta_list.add(b)
+      asl.add(b)
+
+  if len(gi[1]) < 32:
+    for k in range(len(gi[1])):
+      p = Ghost(w, b_h, "images/Pinky.png")
+      gi[1].append(p)
+      monsta_list.add(p)
+      asl.add(p)
+
+  if len(gi[2]) < 32:
+    for k in range(len(gi[2])):
+      i = Ghost(w, b_h, "images/Inky.png")
+      gi[2].append(i)
+      monsta_list.add(i)
+      asl.add(i)
+
+  if len(gi[3]) < 32:
+    for k in range(len(gi[1])):
+      c = Ghost(w, b_h, "images/Clyde.png")
+      gi[3].append(c)
+      monsta_list.add(c)
+      asl.add(c)
+
+  pygame.time.set_timer(pygame.USEREVENT+1, 30000)
 
 startGame()
 
