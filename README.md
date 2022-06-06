@@ -9,6 +9,10 @@ The goal of the game is to collect all the dots before the number of ghosts grow
 The only other changes were:
 The player icon is also now Pac-man instead of the troll face, and the music was replaced with a CC0 licensed title.
 
+### To Run:
+Make sure you have python and pygame installed on your system, checked with 3.10
+Change Directory to your folder you've placed everything and run "python pacman.py"
+
 ### Original Readme notes from hbokmann are below
 
 ### Pacman in Python with PyGame
